@@ -1,49 +1,90 @@
-# 🔐 PyCript 1.0.0 - File Encryption/Decryption Script
+# Secure Tar Encryptor
 
-## 📌 What it does
-- Encrypts files with a user-provided password.  
-- Decrypts previously encrypted files using the same password.  
-- Password entry is secure: it is hidden while typing in the terminal.
+A Python CLI tool to **archive files/directories into tar**, compress them with the **best native compression (xz)**, and **encrypt/decrypt** using a password-derived key.  
+This makes it easy to securely back up and restore entire folders or single files.
 
 ---
 
-## ⚙️ How it works
-- Uses the **cryptography (Fernet/AES)** library for encryption and decryption.  
-- Derives a secure key from the password using **PBKDF2 with SHA256**.  
-- Original file → encrypted file (`.enc`).  
-- Encrypted file → decrypted file (`.dec`).  
+## ✨ Features
+
+- **Password-based encryption** using PBKDF2 + Fernet (AES-128 under the hood).  
+- **Tar archiving**: supports both single files and directories (including nested subdirectories).  
+- **Best compression**: uses `xz` (LZMA) for optimal compression ratio.  
+- **Custom output filename**: specify the name of the tar or decrypted tar file.  
+- **Secure password prompt**: hides input when typing.  
+- **Modular design**: functions can be reused in other scripts.
 
 ---
 
-## 🚀 How to use
+## 📦 Requirements
 
-### Encrypt a file
+- Python 3.7+
+- `cryptography` library
+
+Install dependencies:
+
 ```bash
-python3 main.py -i file.txt -e
+pip install cryptography
 ```
-➡️ Generates `file.txt.enc`
 
-### Decrypt a file
+---
+
+## 🚀 Usage
+
+### Encrypt a directory
+
 ```bash
-python3 main.py -i file.txt.enc -d
+python secure_tar.py -i my_folder -e
 ```
-➡️ Generates `file.txt.dec`
 
-During both operations, the program will prompt you for a password securely (input hidden).
-
----
-
-## 🛠️ Command-line arguments
-
-| Argument | Description |
-|----------|-------------|
-| `-i, --input-file` | Input file (required) |
-| `-e, --encrypt`    | Encrypt the file |
-| `-d, --decrypt`    | Decrypt the file |
+Output: `data.tar.xz.enc`
 
 ---
 
-## ⚠️ Notes
-- If the wrong password is entered during decryption, the script will show an error.  
-- Decrypted files are saved with `.dec` extension to avoid overwriting the original.  
+### Encrypt with a custom name
 
+```bash
+python secure_tar.py -i my_folder -e -o mybackup.tar.xz
+```
+
+Output: `mybackup.tar.xz.enc`
+
+---
+
+### Decrypt and extract
+
+```bash
+python secure_tar.py -i data.tar.xz.enc -d -t output_folder
+```
+
+Extracts contents into `output_folder`.
+
+---
+
+### Decrypt with a custom tar name
+
+```bash
+python secure_tar.py -i mybackup.tar.xz.enc -d -o restored.tar.xz -t output_folder
+```
+
+Creates `restored.tar.xz` and extracts into `output_folder`.
+
+---
+
+## 🔧 Command-line Options
+
+| Option | Description |
+|--------|-------------|
+| **`-i, --input`** | Input file/directory (for encrypt) or encrypted tar (for decrypt) |
+| **`-e, --encrypt`** | Encrypt input into `.tar.xz.enc` |
+| **`-d, --decrypt`** | Decrypt `.tar.xz.enc` and extract |
+| **`-o, --output`** | Custom output filename (tar or decrypted tar) |
+| **`-t, --target`** | Target directory for extraction (default: current directory) |
+
+---
+
+## 🔒 Security Notes
+
+- The key is derived from your password using **PBKDF2-HMAC-SHA256** with 100,000 iterations.  
+- Encryption uses **Fernet**, which provides AES encryption with authentication.  
+- Always use strong, unique passwords for maximum security.
