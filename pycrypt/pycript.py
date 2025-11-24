@@ -7,7 +7,6 @@
  Date        : 24/11/2025
 ===========================================
 """
-
 import argparse
 import os
 import base64
@@ -16,8 +15,8 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.fernet import Fernet
 
-# Função para gerar chave a partir da palavra-passe
-def gerar_chave(password: str, salt: bytes = b'saltpadrao'):
+# Function to generate a key from the password
+def generate_key(password: str, salt: bytes = b'default_salt'):
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,
@@ -26,57 +25,57 @@ def gerar_chave(password: str, salt: bytes = b'saltpadrao'):
     )
     return base64.urlsafe_b64encode(kdf.derive(password.encode()))
 
-# Função para encriptar arquivo
-def encriptar(arquivo: str, password: str):
-    chave = gerar_chave(password)
-    fernet = Fernet(chave)
+# Function to encrypt a file
+def encrypt(file: str, password: str):
+    key = generate_key(password)
+    fernet = Fernet(key)
 
-    with open(arquivo, "rb") as f:
-        dados = f.read()
+    with open(file, "rb") as f:
+        data = f.read()
 
-    dados_encriptados = fernet.encrypt(dados)
+    encrypted_data = fernet.encrypt(data)
 
-    novo_arquivo = arquivo + ".enc"
-    with open(novo_arquivo, "wb") as f:
-        f.write(dados_encriptados)
+    new_file = file + ".enc"
+    with open(new_file, "wb") as f:
+        f.write(encrypted_data)
 
-    print(f"✅ Arquivo encriptado gerado: {novo_arquivo}")
+    print(f"✅ Encrypted file created: {new_file}")
 
-# Função para decriptar arquivo
-def decriptar(arquivo: str, password: str):
-    chave = gerar_chave(password)
-    fernet = Fernet(chave)
+# Function to decrypt a file
+def decrypt(file: str, password: str):
+    key = generate_key(password)
+    fernet = Fernet(key)
 
-    with open(arquivo, "rb") as f:
-        dados_encriptados = f.read()
+    with open(file, "rb") as f:
+        encrypted_data = f.read()
 
     try:
-        dados = fernet.decrypt(dados_encriptados)
+        data = fernet.decrypt(encrypted_data)
     except Exception:
-        print("❌ Senha incorreta ou arquivo inválido!")
+        print("❌ Wrong password or invalid file!")
         return
 
-    novo_arquivo = arquivo.replace(".enc", ".dec")
-    with open(novo_arquivo, "wb") as f:
-        f.write(dados)
+    new_file = file.replace(".enc", ".dec")
+    with open(new_file, "wb") as f:
+        f.write(data)
 
-    print(f"✅ Arquivo decriptado gerado: {novo_arquivo}")
+    print(f"✅ Decrypted file created: {new_file}")
 
 # Main
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Encriptar ou decriptar arquivos com senha")
-    parser.add_argument("-i", "--input-file", required=True, help="Arquivo de entrada")
-    parser.add_argument("-e", "--encrypt", action="store_true", help="Encriptar arquivo")
-    parser.add_argument("-d", "--decrypt", action="store_true", help="Decriptar arquivo")
+    parser = argparse.ArgumentParser(description="Encrypt or decrypt files with a password")
+    parser.add_argument("-i", "--input-file", required=True, help="Input file")
+    parser.add_argument("-e", "--encrypt", action="store_true", help="Encrypt file")
+    parser.add_argument("-d", "--decrypt", action="store_true", help="Decrypt file")
 
     args = parser.parse_args()
 
-    # Solicita senha de forma segura
-    password = getpass("Digite a senha: ")
+    # Secure password prompt
+    password = getpass("Enter password: ")
 
     if args.encrypt:
-        encriptar(args.input_file, password)
+        encrypt(args.input_file, password)
     elif args.decrypt:
-        decriptar(args.input_file, password)
+        decrypt(args.input_file, password)
     else:
-        print("Escolha --encrypt ou --decrypt")
+        print("Choose --encrypt or --decrypt")
