@@ -3,7 +3,7 @@
  Script Name : PyCrypt
  Description : File Encrypt/Decrypt Tool
  Creator     : Pedro Mussato
- Version     : 1.2.0
+ Version     : 1.2.1
  Date        : 24/11/2025
 ===========================================
 """
