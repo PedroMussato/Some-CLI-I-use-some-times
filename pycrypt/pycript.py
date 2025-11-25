@@ -15,6 +15,7 @@ from getpass import getpass
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.fernet import Fernet
+import random
 
 
 def generate_key(password: str, salt: bytes = b'default_salt'):
@@ -57,8 +58,11 @@ def encrypt_tar(path: str, password: str, output_name: str = None):
 
     print(f"✅ Encrypted tar created: {enc_file}")
 
+    # removing not encrypted tar file
+    os.remove(tar_name)
 
-def decrypt_tar(enc_file: str, password: str, destination: str = ".", output_name: str = None):
+
+def decrypt_tar(enc_file: str, password: str, destination: str = "."):
     """Decrypt an encrypted tar and extract it."""
     key = generate_key(password)
     fernet = Fernet(key)
@@ -72,12 +76,26 @@ def decrypt_tar(enc_file: str, password: str, destination: str = ".", output_nam
         print("❌ Wrong password or invalid file!")
         return
 
-    tar_file = output_name if output_name else enc_file.replace(".enc", ".dec.tar.xz")
+
+    chars_list = [
+        "1234567890",
+        "asdfghjklqwertyuiopzxcvbnm",
+        "ASDFGHJKLQWERTYUIOPZXCVBNM"
+    ]
+
+    tar_file = ""
+    for _ in range(4):
+        chars = chars_list[random.randint(0,len(chars_list)-1)]
+        tar_file += chars[random.randint(0,len(chars)-1)]
+    tar_file += "tar.xz"
+
     with open(tar_file, "wb") as f:
         f.write(data)
 
     extract_tar(tar_file, destination)
     print(f"✅ Decrypted and extracted to: {destination}")
+
+    os.remove(tar_file)
 
 
 if __name__ == "__main__":
@@ -94,6 +112,6 @@ if __name__ == "__main__":
     if args.encrypt:
         encrypt_tar(args.input, password, args.output)
     elif args.decrypt:
-        decrypt_tar(args.input, password, args.target, args.output)
+        decrypt_tar(args.input, password, args.target)
     else:
         print("Choose --encrypt or --decrypt")
